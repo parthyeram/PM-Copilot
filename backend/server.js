@@ -8,6 +8,8 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 app.use(cors());
 app.use(express.json());
+const path = require("path");                                          // ← ADD
+app.use(express.static(path.join(__dirname, "../frontend")));          // ← ADD
 
 const PORT = 3001;
 
