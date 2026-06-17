@@ -33,7 +33,7 @@ Structure with these sections:
 5. Key Features
 6. Risks & Assumptions
 
-Be specific and concise. Use bullet points where needed. Do not include any dates, timestamps, version numbers, product manager name, or document headers like "Product Manager:" or "Date:" in the output.`,
+Be specific and concise. Use bullet points where needed. At the top, include "Product Manager" but do not include any dates, timestamps, or version numbers anywhere in the output.`,
   stories: (idea) => `You are a senior product manager. Write 6 detailed user stories for this idea.
 
 Product Idea: "${idea}"
