@@ -4,6 +4,12 @@ let selectedType = "prd";
 const typeLabels = { prd: "Your PRD", stories: "User Stories", tickets: "Backlog Tickets" };
 
 // ── INIT ──────────────────────────────────────────────
+pendo.initialize({
+  visitor: {
+    id: ''
+  }
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".type-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
