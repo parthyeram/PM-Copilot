@@ -39,11 +39,35 @@ async function generate() {
       body: JSON.stringify({ idea, type: selectedType }),
     });
     const data = await res.json();
-    if (!res.ok || data.error) { showError(data.error || "Something went wrong."); return; }
+    if (!res.ok || data.error) {
+      pendo.track("document_generation_failed", {
+        document_type: selectedType,
+        idea_length: idea.length,
+        error_message: String(data.error || "Something went wrong.").substring(0, 100),
+        error_type: "api_error"
+      });
+      showError(data.error || "Something went wrong.");
+      return;
+    }
 
     showOutput(data.result);
+
+    pendo.track("document_generated", {
+      document_type: selectedType,
+      idea_length: idea.length,
+      project_id: String(data.projectId || ""),
+      generation_id: String(data.generationId || ""),
+      result_length: data.result.length
+    });
+
     loadHistory(); // refresh sidebar
   } catch (err) {
+    pendo.track("document_generation_failed", {
+      document_type: selectedType,
+      idea_length: idea.length,
+      error_message: String(err.message || "Network error").substring(0, 100),
+      error_type: "network_error"
+    });
     showError("Cannot connect to backend. Make sure server is running on port 3001.");
   } finally {
     setLoading(false);
@@ -97,6 +121,12 @@ async function loadProject(id) {
       showOutput(latest.result);
     }
 
+    pendo.track("project_loaded_from_history", {
+      project_id: String(id),
+      document_type: project.generations?.[0]?.type || "",
+      generation_count: project.generations?.length || 0
+    });
+
     document.getElementById("generator").scrollIntoView({ behavior: "smooth" });
   } catch {
     showError("Could not load project.");
@@ -108,6 +138,11 @@ async function deleteProject(e, id) {
   e.stopPropagation();
   if (!confirm("Delete this project?")) return;
   await fetch(`${API_BASE}/api/projects/${id}`, { method: "DELETE" });
+
+  pendo.track("project_deleted", {
+    project_id: String(id)
+  });
+
   loadHistory();
 }
 
@@ -115,6 +150,10 @@ async function deleteProject(e, id) {
 function copyOutput() {
   const text = document.getElementById("outputBody").textContent;
   navigator.clipboard.writeText(text).then(() => {
+    pendo.track("output_copied", {
+      document_type: selectedType,
+      content_length: text.length
+    });
     const btn = document.querySelector(".copy-btn");
     btn.textContent = "Copied ✓";
     setTimeout(() => (btn.textContent = "Copy ↗"), 2000);
