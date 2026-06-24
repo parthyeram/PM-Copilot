@@ -2,6 +2,8 @@ const API_BASE = "https://pm-copilot-qh19.onrender.com";
 
 let selectedType = "prd";
 const typeLabels = { prd: "Your PRD", stories: "User Stories", tickets: "Backlog Tickets" };
+const PENDO_AGENT_ID = "BRsWHUSeafsrs1iE3E57VkEvkU8";
+const conversationId = crypto.randomUUID();
 
 // ── INIT ──────────────────────────────────────────────
 pendo.initialize({
@@ -38,6 +40,18 @@ async function generate() {
   hideError();
   hideOutput();
 
+  const messageId = crypto.randomUUID();
+
+  if (typeof pendo !== "undefined" && pendo.trackAgent) {
+    pendo.trackAgent("prompt", {
+      agentId: PENDO_AGENT_ID,
+      conversationId: conversationId,
+      messageId: messageId,
+      content: idea,
+      suggestedPrompt: false,
+    });
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/generate`, {
       method: "POST",
@@ -46,6 +60,16 @@ async function generate() {
     });
     const data = await res.json();
     if (!res.ok || data.error) { showError(data.error || "Something went wrong."); return; }
+
+    if (typeof pendo !== "undefined" && pendo.trackAgent) {
+      pendo.trackAgent("agent_response", {
+        agentId: PENDO_AGENT_ID,
+        conversationId: conversationId,
+        messageId: `agent_response_${messageId}`,
+        content: data.result,
+        modelUsed: "gemini-2.5-flash",
+      });
+    }
 
     showOutput(data.result);
     loadHistory(); // refresh sidebar
